@@ -2,7 +2,9 @@
 
 1. node.jsを導入
 
-2. （初回のみ）npm install
+2. このディレクトリ直下に.envファイルを作成（中身はdiscordにて公開）
+
+2. npm install
 
 3. npm run start
 
@@ -16,6 +18,8 @@
 
 4. vscodeの中からdev containerを立ち上げる
 
-5. （初回のみ）npm install
+5. このディレクトリ直下に.envファイルを作成（中身はdiscordにて公開）
 
-6. npm run start
+6. npm install
+
+7. npm run start
