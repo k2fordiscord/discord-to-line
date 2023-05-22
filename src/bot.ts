@@ -1,16 +1,16 @@
-import * as line from '@line/bot-sdk';
-import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { Client as LineClient } from '@line/bot-sdk';
+import { Client as DiscordClient, GatewayIntentBits, Partials } from 'discord.js';
+
 require('dotenv').config();
 
-const TOKEN = process.env.DISCORD_BOT_TOKEN as string;
-const LINE_TOKEN = process.env.LINE_BOT_TOKEN as string;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN as string;
+const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
 const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID as string;
 
-const client = new Client({
+const discord_client = new DiscordClient({
 	intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildBans,
 		GatewayIntentBits.GuildEmojisAndStickers,
 		GatewayIntentBits.GuildIntegrations,
 		GatewayIntentBits.GuildWebhooks,
@@ -35,55 +35,53 @@ const client = new Client({
 		Partials.GuildScheduledEvent,
 		Partials.ThreadMember,
 	],
-}); //clientインスタンスを作成する
-
-const line_client = new line.Client({
-    channelAccessToken: LINE_TOKEN,
-  });
-
-client.on('ready', () => {
-  console.log(`Logged in as ${client?.user?.tag}!`);
 });
 
-client.on('messageCreate', message => {
-    if (message.author.bot) {
-        return;
-    }
-
-    console.log(message.thread);
-
-    console.log(message.thread?.messageCount);
-    
-    const line_message: line.TextMessage = {
-        text: message.content,
-        type: 'text',
-        };
-
-        line_client
-        .pushMessage(TARGET_GROUP_ID, line_message)
-        .then(() => {
-            console.log('Replied to the message!');
-        })
-        .catch((err) => {
-            console.log(err);
-        });
+const line_client = new LineClient({
+	channelAccessToken: LINE_BOT_TOKEN,
 });
 
-// client.on('threadCreate', message => {
-//     console.log(message.messages);
+discord_client.on('ready', () => {
+	console.log(`Logged in as ${discord_client?.user?.tag}!`);
+});
+
+discord_client.on('threadCreate', thread =>
+	thread.fetchStarterMessage().then((message) => {
+		if (!message) return;
+
+		const text = message ? `${thread.name}\n${message.content}` : thread.name;
+
+		line_client
+			.pushMessage(TARGET_GROUP_ID, { text, type: 'text' })
+			.then(() => {
+				console.log('send the message!');
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}).catch((err) => {
+		console.log(err);
+	})
+);
+
+// discord_client.on('messageCreate', message => {
+//     if (message.author.bot) {
+//         return;
+//     }
+
 //     const line_message: line.TextMessage = {
-//         text: `${message.name}\n${message.messages}`,
+//         text: message.content,
 //         type: 'text',
-//       };
+//         };
 
-//       line_client
+//         line_client
 //         .pushMessage(TARGET_GROUP_ID, line_message)
 //         .then(() => {
-//           console.log('Replied to the message!');
+//             console.log('Replied to the message!');
 //         })
 //         .catch((err) => {
 //             console.log(err);
 //         });
 // });
 
-client.login(TOKEN);
+discord_client.login(DISCORD_BOT_TOKEN);
