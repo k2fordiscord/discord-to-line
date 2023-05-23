@@ -64,24 +64,4 @@ discord_client.on('threadCreate', thread =>
 	})
 );
 
-// discord_client.on('messageCreate', message => {
-//     if (message.author.bot) {
-//         return;
-//     }
-
-//     const line_message: line.TextMessage = {
-//         text: message.content,
-//         type: 'text',
-//         };
-
-//         line_client
-//         .pushMessage(TARGET_GROUP_ID, line_message)
-//         .then(() => {
-//             console.log('Replied to the message!');
-//         })
-//         .catch((err) => {
-//             console.log(err);
-//         });
-// });
-
 discord_client.login(DISCORD_BOT_TOKEN);
