@@ -87,7 +87,7 @@ app.listen(process.env.PORT || 3000, () => {
   console.log("Start on port 3000.");
 });
 
-app.post("/bot/webhook", middleware(line_config), (req, res, next) => {
+app.get("/", (req, res, next) => {
   res.sendStatus(200);
   console.log(req.body);
 });
