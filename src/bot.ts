@@ -91,8 +91,6 @@ app.get("/", (req, res, next) => {
 });
 
 app.post("/webhook", middleware(LINE_CONFIG), (req, res) => {
-	console.log(req.body.events);
-  
 	Promise.all(req.body.events.map(handleEvent)).then((result) =>
 	  res.json(result)
 	);
@@ -116,7 +114,7 @@ async function handleEvent(event: any) {
 	const text = type + '_id = '+ id;
 	console.log("receive message from " + text);
 
-	if(event.message.text !== '\\get_id') return Promise.resolve(null);
+	if(event.message.text !== ':get_id') return Promise.resolve(null);
 	else return line_client.replyMessage(replyToken, { text, type: "text" });
 }
 
