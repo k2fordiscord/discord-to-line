@@ -3,7 +3,6 @@ import { Client as LineClient, middleware } from "@line/bot-sdk";
 import {
 	Client as DiscordClient,
 	GatewayIntentBits,
-	Partials,
 } from "discord.js";
 
 require("dotenv").config();
@@ -20,32 +19,10 @@ const LINE_CONFIG = {
 
 const discord_client = new DiscordClient({
 	intents: [
-		GatewayIntentBits.Guilds,
-		GatewayIntentBits.GuildMembers,
-		GatewayIntentBits.GuildEmojisAndStickers,
-		GatewayIntentBits.GuildIntegrations,
-		GatewayIntentBits.GuildWebhooks,
-		GatewayIntentBits.GuildInvites,
-		GatewayIntentBits.GuildVoiceStates,
-		GatewayIntentBits.GuildPresences,
-		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMessageReactions,
-		GatewayIntentBits.GuildMessageTyping,
-		GatewayIntentBits.DirectMessages,
-		GatewayIntentBits.DirectMessageReactions,
-		GatewayIntentBits.DirectMessageTyping,
-		GatewayIntentBits.MessageContent,
-		GatewayIntentBits.GuildScheduledEvents,
+		GatewayIntentBits.Guilds, // ThreadCreateのために必要
+		GatewayIntentBits.MessageContent, // fetchStarterMessage()でmessageの中身を読むのに必要（特権のため管理画面からの許可がないとエラー）
 	],
-	partials: [
-		Partials.User,
-		Partials.Channel,
-		Partials.GuildMember,
-		Partials.Message,
-		Partials.Reaction,
-		Partials.GuildScheduledEvent,
-		Partials.ThreadMember,
-	],
+	partials: [],
 });
 
 const line_client = new LineClient({
