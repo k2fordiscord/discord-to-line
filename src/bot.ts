@@ -13,7 +13,7 @@ const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
 const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID as string;
 
 // パラメータ設定
-const line_config = {
+const LINE_CONFIG = {
   channelAccessToken: LINE_BOT_TOKEN, // 環境変数からアクセストークンをセットしています
   channelSecret: process.env.LINE_CHANNEL_SECRET as string, // 環境変数からChannel Secretをセットしています
 };
@@ -89,3 +89,44 @@ app.get("/", (req, res, next) => {
   res.sendStatus(200);
   console.log(req.body);
 });
+
+app.post("/webhook", middleware(LINE_CONFIG), (req, res) => {
+	Promise.all(req.body.events.map(handleEvent)).then((result) =>
+	  res.json(result)
+	);
+  });
+
+async function handleEvent(event: any) {
+	if (event.type !== "message" || event.message.type !== "text") {
+		return Promise.resolve(null);
+	}
+
+	// 応答用Token
+	const replyToken = event.replyToken;
+
+	// typeを取得 
+	const type = event.source.type;
+
+	// typeを判定して、idを取得
+	let id = getIdFromType(type, event);
+	if(id === null) return Promise.resolve(null);
+
+	const text = type + '_id = '+ id;
+	console.log("receive message from " + text);
+
+	if(event.message.text !== ':get_id') return Promise.resolve(null);
+	else return line_client.replyMessage(replyToken, { text, type: "text" });
+}
+
+function getIdFromType(type: string, event: any) {
+	switch(type) {
+		case 'user':
+			return event.source.userId;
+		case 'group':
+			return event.source.groupId;
+		case 'room':
+			return event.source.roomId;
+		default:
+			return null;
+	}
+}
