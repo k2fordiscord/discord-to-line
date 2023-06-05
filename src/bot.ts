@@ -62,7 +62,7 @@ discord_client.on("threadCreate", (thread) => {
 	thread
 		.fetchStarterMessage()
 		.then((message) => {
-			if(message) {
+			if (message) {
 				console.log("title: ", thread.name, ", username: ", message?.author.username, "message: ", message.content);
 			} else {
 				console.log("title: ", thread.name);
@@ -89,7 +89,7 @@ discord_client.login(DISCORD_BOT_TOKEN);
 const app: express.Express = express();
 
 app.listen(process.env.PORT || 3000, () => {
-	console.log(`Start on port ${process.env.PORT}.`);
+	console.log(`Start on port ${process.env.PORT || 3000}.`);
 });
 
 // サーバーを落とさないためのダミーリクエストを送る場所
