@@ -60,9 +60,7 @@ discord_client.on("threadCreate", (thread) =>
   thread
     .fetchStarterMessage()
     .then((message) => {
-      if (!message) return;
-
-      const text = message ? `${thread.name}\n${message.content}` : thread.name;
+      const text = message ? `${thread.name}\nby ${message.author.username}\n\n${message.content}` : thread.name;
 
       line_client
         .pushMessage(TARGET_GROUP_ID, { text, type: "text" })
