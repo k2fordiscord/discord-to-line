@@ -33,6 +33,14 @@ discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
 });
 
+
+function thread_create_text(title: string, username?: string, content?: string) {
+	content = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
+
+	return `新しい同行者募集が登録されました！\n\n${content}\n\n気になる方はdiscordへ！`;
+}
+
+
 discord_client.on("threadCreate", (thread) => {
 	console.log("Thread created.");
 
@@ -45,9 +53,8 @@ discord_client.on("threadCreate", (thread) => {
 				console.log("title: ", thread.name);
 			}
 
-			const text = message ? `${thread.name}\nby ${message.author.username}\n\n${message.content}` : thread.name;
 			line_client
-				.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
+				.pushMessage(TARGET_GROUP_ID, { text: thread_create_text(thread.name, message?.author.username, message?.content), type: "text" })
 				.then(() => {
 					console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
 				})
