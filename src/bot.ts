@@ -79,8 +79,10 @@ discord_client.on("threadCreate", (thread) => {
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
 	if (oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
+		console.log("thread closed! name: ", newThread.name);
 		line_send_message(thread_reopen_text(newThread.name));
 	} else if (oldThread.name.charAt(0) !== '〆' && newThread.name.charAt(0) === '〆') {
+		console.log("thread reopen! name: ", oldThread.name);
 		line_send_message(thread_close_text(oldThread.name));
 	}
 });
