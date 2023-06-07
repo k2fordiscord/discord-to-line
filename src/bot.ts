@@ -29,9 +29,39 @@ const line_client = new LineClient({
 	channelAccessToken: LINE_BOT_TOKEN,
 });
 
+function thread_reopen_text(title: string) {
+	return `下記の同行者募集が再開されました！\n\n${title}\n\n気になる方はdiscordへ！`;
+}
+
+function thread_close_text(title: string) {
+	return `下記の同行者募集が〆切られました！\n\n${title}`;
+}
+
 discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
 });
+
+discord_client.on("threadUpdate", (oldThread, newThread) => {
+	if(oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
+		line_client
+		.pushMessage(TARGET_GROUP_ID, { text: thread_reopen_text(newThread.name), type: "text" })
+		.then(() => {
+			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+	} else if (oldThread.name.charAt(0) !== '〆' && newThread.name.charAt(0) === '〆') {
+		line_client
+		.pushMessage(TARGET_GROUP_ID, { text: thread_close_text(oldThread.name), type: "text" })
+		.then(() => {
+			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+	}
+})
 
 discord_client.on("threadCreate", (thread) => {
 	console.log("Thread created.");
