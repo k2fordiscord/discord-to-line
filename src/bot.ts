@@ -31,13 +31,13 @@ const line_client = new LineClient({
 
 function line_send_message(text: string) {
 	line_client
-	.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
-	.then(() => {
-		console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-	})
-	.catch((err) => {
-		console.error(err);
-	});
+		.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
+		.then(() => {
+			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+		})
+		.catch((err) => {
+			console.error(err);
+		});
 }
 
 function thread_create_text(title: string, username?: string, content?: string) {
@@ -78,7 +78,7 @@ discord_client.on("threadCreate", (thread) => {
 });
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
-	if(oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
+	if (oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
 		line_send_message(thread_reopen_text(newThread.name));
 	} else if (oldThread.name.charAt(0) !== '〆' && newThread.name.charAt(0) === '〆') {
 		line_send_message(thread_close_text(oldThread.name));
