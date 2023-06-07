@@ -30,9 +30,9 @@ const line_client = new LineClient({
 });
 
 function thread_create_text(title: string, username?: string, content?: string) {
-	content = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
+	const text = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
 
-	return `新しい同行者募集が登録されました！\n\n${content}\n\n気になる方はdiscordへ！`;
+	return `新しい同行者募集が登録されました！\n\n${text}\n\n気になる方はdiscordへ！`;
 }
 
 function thread_reopen_text(title: string) {
