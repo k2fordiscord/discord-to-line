@@ -29,17 +29,34 @@ const line_client = new LineClient({
 	channelAccessToken: LINE_BOT_TOKEN,
 });
 
+function line_send_message(text: string) {
+	line_client
+		.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
+		.then(() => {
+			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+}
+
+function thread_create_text(title: string, username?: string, content?: string) {
+	const text = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
+
+	return `新しい同行者募集が登録されました！\n\n${text}\n\n気になる方はdiscordへ！`;
+}
+
+function thread_reopen_text(title: string) {
+	return `下記の同行者募集が再開されました！\n\n${title}\n\n気になる方はdiscordへ！`;
+}
+
+function thread_close_text(title: string) {
+	return `下記の同行者募集が〆切られました！\n\n${title}`;
+}
+
 discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
 });
-
-
-function thread_create_text(title: string, username?: string, content?: string) {
-	content = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
-
-	return `新しい同行者募集が登録されました！\n\n${content}\n\n気になる方はdiscordへ！`;
-}
-
 
 discord_client.on("threadCreate", (thread) => {
 	console.log("Thread created.");
@@ -48,25 +65,27 @@ discord_client.on("threadCreate", (thread) => {
 		.fetchStarterMessage()
 		.then((message) => {
 			if (message) {
-				console.log("title: ", thread.name, ", username: ", message?.author.username, "message: ", message.content);
+				console.log("title: ", thread.name, ", username: ", message.author.username, ", message: ", message.content);
 			} else {
 				console.log("title: ", thread.name);
 			}
 
-			line_client
-				.pushMessage(TARGET_GROUP_ID, { text: thread_create_text(thread.name, message?.author.username, message?.content), type: "text" })
-				.then(() => {
-					console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-				})
-				.catch((err) => {
-					console.error(err);
-				});
+			line_send_message(thread_create_text(thread.name, message?.author.username, message?.content));
 		})
 		.catch((err) => {
 			console.error(err);
 		});
-}
-);
+});
+
+discord_client.on("threadUpdate", (oldThread, newThread) => {
+	if (oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
+		console.log("thread closed! name: ", newThread.name);
+		line_send_message(thread_reopen_text(newThread.name));
+	} else if (oldThread.name.charAt(0) !== '〆' && newThread.name.charAt(0) === '〆') {
+		console.log("thread reopen! name: ", oldThread.name);
+		line_send_message(thread_close_text(oldThread.name));
+	}
+});
 
 discord_client.login(DISCORD_BOT_TOKEN);
 
