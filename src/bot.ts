@@ -29,6 +29,17 @@ const line_client = new LineClient({
 	channelAccessToken: LINE_BOT_TOKEN,
 });
 
+function line_send_message(text: string) {
+	line_client
+	.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
+	.then(() => {
+		console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+	})
+	.catch((err) => {
+		console.error(err);
+	});
+}
+
 function thread_create_text(title: string, username?: string, content?: string) {
 	const text = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
 
@@ -54,19 +65,12 @@ discord_client.on("threadCreate", (thread) => {
 		.fetchStarterMessage()
 		.then((message) => {
 			if (message) {
-				console.log("title: ", thread.name, ", username: ", message?.author.username, "message: ", message.content);
+				console.log("title: ", thread.name, ", username: ", message.author.username, ", message: ", message.content);
 			} else {
 				console.log("title: ", thread.name);
 			}
 
-			line_client
-				.pushMessage(TARGET_GROUP_ID, { text: thread_create_text(thread.name, message?.author.username, message?.content), type: "text" })
-				.then(() => {
-					console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-				})
-				.catch((err) => {
-					console.error(err);
-				});
+			line_send_message(thread_create_text(thread.name, message?.author.username, message?.content));
 		})
 		.catch((err) => {
 			console.error(err);
@@ -75,23 +79,9 @@ discord_client.on("threadCreate", (thread) => {
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
 	if(oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
-		line_client
-		.pushMessage(TARGET_GROUP_ID, { text: thread_reopen_text(newThread.name), type: "text" })
-		.then(() => {
-			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+		line_send_message(thread_reopen_text(newThread.name));
 	} else if (oldThread.name.charAt(0) !== '〆' && newThread.name.charAt(0) === '〆') {
-		line_client
-		.pushMessage(TARGET_GROUP_ID, { text: thread_close_text(oldThread.name), type: "text" })
-		.then(() => {
-			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+		line_send_message(thread_close_text(oldThread.name));
 	}
 });
 
