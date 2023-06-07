@@ -29,6 +29,12 @@ const line_client = new LineClient({
 	channelAccessToken: LINE_BOT_TOKEN,
 });
 
+function thread_create_text(title: string, username?: string, content?: string) {
+	content = (!username || !content) ? title : `${title}\n投稿者: ${username}\n\n${content}`;
+
+	return `新しい同行者募集が登録されました！\n\n${content}\n\n気になる方はdiscordへ！`;
+}
+
 function thread_reopen_text(title: string) {
 	return `下記の同行者募集が再開されました！\n\n${title}\n\n気になる方はdiscordへ！`;
 }
@@ -39,6 +45,32 @@ function thread_close_text(title: string) {
 
 discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
+});
+
+discord_client.on("threadCreate", (thread) => {
+	console.log("Thread created.");
+
+	thread
+		.fetchStarterMessage()
+		.then((message) => {
+			if (message) {
+				console.log("title: ", thread.name, ", username: ", message?.author.username, "message: ", message.content);
+			} else {
+				console.log("title: ", thread.name);
+			}
+
+			line_client
+				.pushMessage(TARGET_GROUP_ID, { text: thread_create_text(thread.name, message?.author.username, message?.content), type: "text" })
+				.then(() => {
+					console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
+				})
+				.catch((err) => {
+					console.error(err);
+				});
+		})
+		.catch((err) => {
+			console.error(err);
+		});
 });
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
@@ -61,35 +93,7 @@ discord_client.on("threadUpdate", (oldThread, newThread) => {
 			console.error(err);
 		});
 	}
-})
-
-discord_client.on("threadCreate", (thread) => {
-	console.log("Thread created.");
-
-	thread
-		.fetchStarterMessage()
-		.then((message) => {
-			if (message) {
-				console.log("title: ", thread.name, ", username: ", message?.author.username, "message: ", message.content);
-			} else {
-				console.log("title: ", thread.name);
-			}
-
-			const text = message ? `${thread.name}\nby ${message.author.username}\n\n${message.content}` : thread.name;
-			line_client
-				.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
-				.then(() => {
-					console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-				})
-				.catch((err) => {
-					console.error(err);
-				});
-		})
-		.catch((err) => {
-			console.error(err);
-		});
-}
-);
+});
 
 discord_client.login(DISCORD_BOT_TOKEN);
 
