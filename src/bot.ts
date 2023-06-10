@@ -9,7 +9,7 @@ require("dotenv").config();
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN as string;
 const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
-const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID as string;
+const TARGET_LINE_IDS = (process.env.TARGET_LINE_IDS as string).split(/[ ,]+/);
 const TARGET_THREAD_NAME = process.env.TARGET_THREAD_NAME as string;
 
 // パラメータ設定
@@ -31,14 +31,16 @@ const line_client = new LineClient({
 });
 
 function line_send_message(text: string) {
-	line_client
-		.pushMessage(TARGET_GROUP_ID, { text, type: "text" })
-		.then(() => {
-			console.log(`Message sent to ${TARGET_GROUP_ID} completed.`);
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+	TARGET_LINE_IDS.map((line_id) => {
+		line_client
+			.pushMessage(line_id, { text, type: "text" })
+			.then(() => {
+				console.log(`Message sent to ${line_id} completed.`);
+			})
+			.catch((err) => {
+				console.error(err);
+			});
+	})
 }
 
 function thread_create_text(title: string, username?: string, content?: string) {
