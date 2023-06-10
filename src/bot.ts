@@ -10,6 +10,7 @@ require("dotenv").config();
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN as string;
 const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
 const TARGET_GROUP_ID = process.env.TARGET_GROUP_ID as string;
+const TARGET_THREAD_NAME = process.env.TARGET_THREAD_NAME as string;
 
 // パラメータ設定
 const LINE_CONFIG = {
@@ -60,6 +61,10 @@ discord_client.on("ready", () => {
 
 discord_client.on("threadCreate", (thread) => {
 	console.log("Thread created.");
+	if(thread.parent?.name !== TARGET_THREAD_NAME) {
+		console.log("This thread is not a target. name=", thread.parent?.name);
+		return;
+	}
 
 	thread
 		.fetchStarterMessage()
@@ -78,6 +83,12 @@ discord_client.on("threadCreate", (thread) => {
 });
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
+	console.log("Thread updated.");
+	if(newThread.parent?.name !== TARGET_THREAD_NAME) {
+		console.log("This thread is not a target. name=", newThread.parent?.name);
+		return;
+	}
+
 	if (oldThread.name.charAt(0) === '〆' && newThread.name.charAt(0) !== '〆') {
 		console.log("thread closed! name: ", newThread.name);
 		line_send_message(thread_reopen_text(newThread.name));
