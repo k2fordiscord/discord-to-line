@@ -48,7 +48,7 @@ function line_send_message(message: string) {
 		}
 
 		axios.request(notify_config).then((responseLINENotify) => {
-			console.log(responseLINENotify.data);
+			console.log("line notify status: " + responseLINENotify.data.status);
 		}).catch((error) => {
 			console.error(error);
 		})
