@@ -11,7 +11,6 @@ require("dotenv").config();
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN as string;
 const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
-const TARGET_LINE_IDS = (process.env.TARGET_LINE_IDS as string).split(/[ ,]+/);
 const TARGET_THREAD_NAME = process.env.TARGET_THREAD_NAME as string;
 const LINE_NOTIFY_TOKENS = (process.env.LINE_NOTIFY_TOKENS as string).split(/[ ,]+/);
 const LINE_NOTIFY_API_URL = 'https://notify-api.line.me/api/notify';
@@ -36,7 +35,7 @@ const line_client = new LineClient({
 
 function line_send_message(message: string) {
 	LINE_NOTIFY_TOKENS.map((token) => {
-		const config = {
+		const notify_config = {
 			url: LINE_NOTIFY_API_URL,
 			method: 'post',
 			headers: {
@@ -48,7 +47,7 @@ function line_send_message(message: string) {
 			})
 		}
 
-		axios.request(config).then((responseLINENotify) => {
+		axios.request(notify_config).then((responseLINENotify) => {
 			console.log(responseLINENotify.data);
 		}).catch((error) => {
 			console.error(error);
