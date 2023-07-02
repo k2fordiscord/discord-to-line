@@ -4,13 +4,16 @@ import {
 	Client as DiscordClient,
 	GatewayIntentBits,
 } from "discord.js";
+import axios from 'axios';
+import qs from 'querystring';
 
 require("dotenv").config();
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN as string;
 const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
-const TARGET_LINE_IDS = (process.env.TARGET_LINE_IDS as string).split(/[ ,]+/);
 const TARGET_THREAD_NAME = process.env.TARGET_THREAD_NAME as string;
+const LINE_NOTIFY_TOKENS = (process.env.LINE_NOTIFY_TOKENS as string).split(/[ ,]+/);
+const LINE_NOTIFY_API_URL = 'https://notify-api.line.me/api/notify';
 
 // パラメータ設定
 const LINE_CONFIG = {
@@ -30,16 +33,25 @@ const line_client = new LineClient({
 	channelAccessToken: LINE_BOT_TOKEN,
 });
 
-function line_send_message(text: string) {
-	TARGET_LINE_IDS.map((line_id) => {
-		line_client
-			.pushMessage(line_id, { text, type: "text" })
-			.then(() => {
-				console.log(`Message sent to ${line_id} completed.`);
+function line_send_message(message: string) {
+	LINE_NOTIFY_TOKENS.map((token) => {
+		const notify_config = {
+			url: LINE_NOTIFY_API_URL,
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Authorization': 'Bearer ' + token
+			},
+			data: qs.stringify({
+			  message: message,
 			})
-			.catch((err) => {
-				console.error(err);
-			});
+		}
+
+		axios.request(notify_config).then((responseLINENotify) => {
+			console.log("line notify status: " + responseLINENotify.data.status);
+		}).catch((error) => {
+			console.error(error);
+		})
 	})
 }
 
