@@ -3,6 +3,7 @@ import { Client as LineClient, middleware } from "@line/bot-sdk";
 import {
 	Client as DiscordClient,
 	GatewayIntentBits,
+	Options,
 } from "discord.js";
 import axios from 'axios';
 import qs from 'querystring';
@@ -27,6 +28,10 @@ const discord_client = new DiscordClient({
 		GatewayIntentBits.MessageContent, // fetchStarterMessage()でmessageの中身を読むのに必要（特権のため管理画面からの許可がないとエラー）
 	],
 	partials: [],
+	makeCache: Options.cacheWithLimits({
+		...Options.DefaultMakeCacheSettings,
+		GuildMemberManager: 0, // ユーザーの「サーバーニックネーム」が変更されたときにすぐ反映するためキャッシュをオフにしている
+	}),
 });
 
 const line_client = new LineClient({
@@ -43,7 +48,7 @@ function line_send_message(message: string) {
 				'Authorization': 'Bearer ' + token
 			},
 			data: qs.stringify({
-			  message: message,
+				message: message,
 			})
 		}
 
@@ -73,32 +78,28 @@ discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
 });
 
-discord_client.on("threadCreate", (thread) => {
+discord_client.on("threadCreate", async (thread) => {
 	console.log("Thread created.");
-	if(thread.parent?.name !== TARGET_THREAD_NAME) {
+	if (thread.parent?.name !== TARGET_THREAD_NAME) {
 		console.log("This thread is not a target. name=", thread.parent?.name);
 		return;
 	}
 
-	thread
-		.fetchStarterMessage()
-		.then((message) => {
-			if (message) {
-				console.log("title: ", thread.name, ", username: ", message.author.username, ", message: ", message.content);
-			} else {
-				console.log("title: ", thread.name);
-			}
+	const message = await thread.fetchStarterMessage();
+	if (!message) {
+		console.error("starter messageが取得できませんでした。");
+		return;
+	}
 
-			line_send_message(thread_create_text(thread.name, message?.author.username, message?.content));
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+	const member = await message.guild.members.fetch(message.author);
+	console.log("title: ", thread.name, ", username: ", member.displayName, ", message: ", message?.content);
+
+	line_send_message(thread_create_text(thread.name, member.displayName, message?.content));
 });
 
 discord_client.on("threadUpdate", (oldThread, newThread) => {
 	console.log("Thread updated.");
-	if(newThread.parent?.name !== TARGET_THREAD_NAME) {
+	if (newThread.parent?.name !== TARGET_THREAD_NAME) {
 		console.log("This thread is not a target. name=", newThread.parent?.name);
 		return;
 	}
