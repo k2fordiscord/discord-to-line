@@ -1,8 +1,10 @@
 import express from "express";
 import { Client as LineClient, middleware } from "@line/bot-sdk";
 import {
+	AnyThreadChannel,
 	Client as DiscordClient,
 	GatewayIntentBits,
+	Message,
 	Options,
 } from "discord.js";
 import axios from 'axios';
@@ -15,6 +17,9 @@ const LINE_BOT_TOKEN = process.env.LINE_BOT_TOKEN as string;
 const TARGET_THREAD_NAME = process.env.TARGET_THREAD_NAME as string;
 const LINE_NOTIFY_TOKENS = (process.env.LINE_NOTIFY_TOKENS as string).split(/[ ,]+/);
 const LINE_NOTIFY_API_URL = 'https://notify-api.line.me/api/notify';
+
+const WAIT_SEC = 1; // discordのスレッド作成時にstarterMessageの作成を待つ時間
+const MAX_RETRY_COUNT = 3;
 
 // パラメータ設定
 const LINE_CONFIG = {
@@ -74,6 +79,14 @@ function thread_close_text(title: string) {
 	return `下記の同行者募集が〆切られました！\n\n${title}`;
 }
 
+async function fetch_thread_starter_message(thread: AnyThreadChannel<boolean>, retryCount: number = 0): Promise<Message<true> | null> {
+	if (retryCount >= MAX_RETRY_COUNT) return null;
+
+	await new Promise((resolve) => setTimeout(resolve, WAIT_SEC * 1000)); // {WAIT_SEC}秒待機
+
+	return await thread.fetchStarterMessage().catch(() => fetch_thread_starter_message(thread, retryCount + 1)); // 失敗したら再帰
+}
+
 discord_client.on("ready", () => {
 	console.log(`Logged in as ${discord_client?.user?.tag}!`);
 });
@@ -85,7 +98,7 @@ discord_client.on("threadCreate", async (thread) => {
 		return;
 	}
 
-	const message = await thread.fetchStarterMessage();
+	const message = await fetch_thread_starter_message(thread);
 	if (!message) {
 		console.error("starter messageが取得できませんでした。");
 		return;
